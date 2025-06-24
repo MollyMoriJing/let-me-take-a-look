@@ -67,9 +67,9 @@ All functions accessible via keyboard shortcuts for screen reader users:
 
 ## Demo
 
-![alt text](image.png)
-![alt text](image-1.png)
-![alt text](image-2.png)
+![alt text](/public/image.jpg)
+![alt text](/public/image-1.jpg)
+![alt text](/public/image-2.jpg)
 
 ## Getting Started
 
