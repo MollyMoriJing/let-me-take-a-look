@@ -1,7 +1,3 @@
-/**
- * UIManager - Enhanced version with better DOM manipulation
- * Handles all user interface interactions and state management
- */
 export class UIManager {
   constructor(config = {}) {
     this.eventBus = config.eventBus
@@ -107,7 +103,7 @@ export class UIManager {
   }
 
   /**
-   * Setup form handlers
+   * FIXED: Setup form handlers with proper prompt handling
    */
   setupFormHandlers() {
     // AI Server URL input
@@ -119,32 +115,69 @@ export class UIManager {
       console.log('✅ AI Server URL handler set')
     }
 
-    // Analysis prompt selector
+    // FIXED: Analysis prompt selector with proper event handling
     const promptSelect = document.getElementById('analysisPrompt')
+    const customPromptGroup = document.getElementById('customPromptGroup')
+    const customPromptTextarea = document.getElementById('customPrompt')
+    
     if (promptSelect) {
       promptSelect.addEventListener('change', (e) => {
-        const customGroup = document.getElementById('customPromptGroup')
-        if (customGroup) {
-          customGroup.style.display = e.target.value === 'custom' ? 'block' : 'none'
+        const selectedValue = e.target.value
+        const isCustom = selectedValue === 'custom'
+        
+        // Show/hide custom prompt input
+        if (customPromptGroup) {
+          customPromptGroup.style.display = isCustom ? 'block' : 'none'
         }
         
-        this.eventBus?.emit('config:prompt-changed', { 
-          prompt: e.target.value,
-          isCustom: e.target.value === 'custom'
-        })
+        // FIXED: Emit proper prompt change event
+        if (isCustom) {
+          // For custom prompts, use the textarea value
+          const customPrompt = customPromptTextarea?.value?.trim() || 
+            'Describe what you see in this image in detail.'
+          
+          this.eventBus?.emit('config:prompt-changed', {
+            prompt: customPrompt,
+            isCustom: true
+          })
+        } else {
+          // For predefined prompts, use the selected value
+          this.eventBus?.emit('config:prompt-changed', {
+            prompt: selectedValue,
+            isCustom: false
+          })
+        }
+        
+        console.log('🎯 Prompt changed:', isCustom ? 'Custom' : selectedValue.substring(0, 50) + '...')
       })
       console.log('✅ Analysis prompt handler set')
     }
 
-    // Custom prompt textarea
-    const customPrompt = document.getElementById('customPrompt')
-    if (customPrompt) {
-      // Use both input and change events for better responsiveness
-      const handler = (e) => {
-        this.eventBus?.emit('config:custom-prompt-changed', { prompt: e.target.value })
-      }
-      customPrompt.addEventListener('input', handler)
-      customPrompt.addEventListener('change', handler)
+    // FIXED: Custom prompt textarea with proper event handling
+    if (customPromptTextarea) {
+      customPromptTextarea.addEventListener('input', (e) => {
+        const customPrompt = e.target.value.trim()
+        
+        // Only emit if custom prompt is currently selected
+        if (promptSelect?.value === 'custom') {
+          this.eventBus?.emit('config:prompt-changed', {
+            prompt: customPrompt || 'Describe what you see in this image in detail.',
+            isCustom: true
+          })
+        }
+      })
+      
+      customPromptTextarea.addEventListener('change', (e) => {
+        const customPrompt = e.target.value.trim()
+        
+        // Only emit if custom prompt is currently selected
+        if (promptSelect?.value === 'custom') {
+          this.eventBus?.emit('config:prompt-changed', {
+            prompt: customPrompt || 'Describe what you see in this image in detail.',
+            isCustom: true
+          })
+        }
+      })
       console.log('✅ Custom prompt handler set')
     }
 

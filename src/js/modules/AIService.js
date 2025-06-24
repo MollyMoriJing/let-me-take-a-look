@@ -2,15 +2,15 @@ export class AIService {
   constructor(config = {}) {
     this.config = {
       serverUrl: 'http://localhost:8000',
-      timeout: 120000,
+      timeout: 90000, 
       retryAttempts: 1,
-      retryDelay: 120000,
-      maxTokens: 150,
-      temperature: 0.7,
+      retryDelay: 5000,  
+      maxTokens: 300,    
+      temperature: 0.1,
       topP: 0.9,
       repetitionPenalty: 1.1,
-      maxImageSize: 516,
-      imageQuality: 0.2,
+      maxImageSize: 512,
+      imageQuality: 0.8,
       ...config
     }
     
@@ -21,7 +21,7 @@ export class AIService {
     
     // Connection state
     this.lastHealthCheck = 0
-    this.healthCheckInterval = 15000
+    this.healthCheckInterval = 30000 
     this.connectionRetries = 0
     this.maxConnectionRetries = 3
     
@@ -39,9 +39,6 @@ export class AIService {
       timeoutRequests: 0,
       averageResponseTime: 0,
       totalResponseTime: 0,
-      averageInferenceTime: 0,
-      totalInferenceTime: 0,
-      successfulInferences: 0,
       lastError: null,
       uptimeStart: Date.now()
     }
@@ -57,16 +54,15 @@ export class AIService {
    */
   async initialize() {
     try {
-      console.log('🤖 Initializing Enhanced AI Service...')
+      console.log('🤖 Initializing AI Service...')
       
       this.setupEventListeners()
       await this.testConnection()
       await this.getServerInfo()
-      await this.getServerCapabilities()
       this.startHealthMonitoring()
       
       this.isInitialized = true
-      console.log('✅ Enhanced AI Service initialized successfully')
+      console.log('✅ AI Service initialized successfully')
       
       this.eventBus?.emit('ai:initialized', { 
         serverUrl: this.config.serverUrl,
@@ -82,7 +78,7 @@ export class AIService {
   }
 
   /**
-   * Enhanced connection testing with detailed diagnostics
+   * Enhanced connection testing
    */
   async testConnection() {
     const startTime = Date.now()
@@ -90,7 +86,7 @@ export class AIService {
     try {
       console.log(`🤖 Testing connection to ${this.config.serverUrl}...`)
       
-      const response = await this.makeRequest('/health', 'GET', null, { timeout: 10000 })
+      const response = await this.makeRequest('/health', 'GET', null, { timeout: 15000 })
       
       if (response.status === 'healthy' || response.status === 'ok') {
         this.isConnected = true
@@ -100,7 +96,7 @@ export class AIService {
         
         const responseTime = Date.now() - startTime
         console.log(`✅ AI server connected (${responseTime}ms)`)
-        console.log(`📊 Server info: ${response.model} on ${response.device}`)
+        console.log(`📊 Server info: ${response.model || 'SmolVLM'}`)
         
         this.eventBus?.emit('ai:connected', {
           serverUrl: this.config.serverUrl,
@@ -125,9 +121,9 @@ export class AIService {
         willRetry: this.connectionRetries < this.maxConnectionRetries
       })
       
-      // Auto-retry with exponential backoff
+      // Auto-retry with backoff
       if (this.connectionRetries < this.maxConnectionRetries) {
-        const delay = this.config.retryDelay * Math.pow(2, this.connectionRetries - 1)
+        const delay = this.config.retryDelay * this.connectionRetries
         console.log(`🤖 Retrying connection in ${delay}ms...`)
         
         setTimeout(() => {
@@ -140,23 +136,18 @@ export class AIService {
   }
 
   /**
-   * Get detailed server information
+   * Get server information
    */
   async getServerInfo() {
     try {
-      const [modelsResponse, statsResponse] = await Promise.allSettled([
-        this.makeRequest('/v1/models', 'GET', null, { timeout: 10000, suppressErrors: true }),
-        this.makeRequest('/stats', 'GET', null, { timeout: 10000, suppressErrors: true })
-      ])
+      const statsResponse = await this.makeRequest('/health', 'GET', null, { 
+        timeout: 10000, 
+        suppressErrors: true 
+      })
       
-      if (modelsResponse.status === 'fulfilled' && modelsResponse.value?.data) {
-        this.supportedModels = modelsResponse.value.data
-        this.currentModel = this.supportedModels[0]?.id || 'SmolVLM-Instruct'
-        console.log(`🤖 Found ${this.supportedModels.length} supported models`)
-      }
-      
-      if (statsResponse.status === 'fulfilled' && statsResponse.value) {
-        this.serverStats = statsResponse.value
+      if (statsResponse) {
+        this.serverStats = statsResponse
+        this.currentModel = statsResponse.model || 'SmolVLM-Instruct'
         console.log('📊 Server statistics retrieved')
       }
       
@@ -166,27 +157,7 @@ export class AIService {
   }
 
   /**
-   * Get server capabilities
-   */
-  async getServerCapabilities() {
-    try {
-      const configResponse = await this.makeRequest('/config', 'GET', null, { 
-        timeout: 10000, 
-        suppressErrors: true 
-      })
-      
-      if (configResponse) {
-        this.serverCapabilities = { ...this.serverCapabilities, ...configResponse }
-        console.log('⚙️ Server capabilities retrieved')
-      }
-      
-    } catch (error) {
-      console.log('⚙️ Server config endpoint not available')
-    }
-  }
-
-  /**
-   * Enhanced image analysis with progress tracking and optimization
+   * FIXED: Enhanced image analysis with proper timeout handling
    */
   async analyzeImage(imageDataUrl, prompt, options = {}) {
     if (!this.isConnected) {
@@ -202,7 +173,10 @@ export class AIService {
       // Optimize image if needed
       const optimizedImage = await this.optimizeImage(imageDataUrl)
       
-      // Prepare enhanced request body
+      // FIXED: Determine if this is quick mode
+      const isQuickMode = options.quick_mode || options.realtime || false
+      
+      // FIXED: Prepare request body with proper parameters
       const requestBody = {
         model: options.model || this.currentModel || 'SmolVLM-Instruct',
         messages: [{
@@ -222,29 +196,37 @@ export class AIService {
         temperature: options.temperature || this.config.temperature,
         top_p: options.topP || this.config.topP,
         repetition_penalty: options.repetitionPenalty || this.config.repetitionPenalty,
-        stream: false
+        stream: false,
+        quick_mode: isQuickMode  // Pass quick mode to server
       }
       
-      // Track active request with progress
+      // Track active request
       this.activeRequests.set(requestId, {
         startTime,
         prompt: prompt.substring(0, 100),
         status: 'processing',
-        imageSize: this.getImageSize(imageDataUrl)
+        imageSize: this.getImageSize(imageDataUrl),
+        quickMode: isQuickMode
       })
       
       // Emit progress start
       this.eventBus?.emit('ai:analysis-started', { 
         requestId, 
-        prompt: prompt.substring(0, 50) + '...' 
+        prompt: prompt.substring(0, 50) + '...',
+        quickMode: isQuickMode
       })
       
-      // Make request with enhanced retry logic and longer timeout
+      // FIXED: Use appropriate timeout based on mode
+      const requestTimeout = isQuickMode ? 45000 : (options.timeout || this.config.timeout)
+      
+      console.log(`🤖 [${requestId}] Using ${isQuickMode ? 'QUICK' : 'NORMAL'} mode (timeout: ${requestTimeout}ms)`)
+      
+      // Make request with proper timeout
       const response = await this.makeRequestWithRetry(
         '/v1/chat/completions', 
         'POST', 
         requestBody,
-        { requestId, timeout: this.config.timeout } // Use the full timeout
+        { requestId, timeout: requestTimeout }
       )
       
       // Validate response
@@ -253,7 +235,7 @@ export class AIService {
       }
       
       const totalTime = Date.now() - startTime
-      const processingTimes = response.processing_time || {}
+      const processingTimes = response.processing_metadata || {}
       
       const result = {
         content: response.choices[0].message.content,
@@ -262,18 +244,18 @@ export class AIService {
         requestId,
         responseTime: totalTime,
         processingTime: processingTimes,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        quickMode: isQuickMode
       }
       
       // Update metrics
-      this.updateMetrics(true, totalTime, processingTimes.inference || 0)
+      this.updateMetrics(true, totalTime)
       
       // Update request tracking
       this.activeRequests.get(requestId).status = 'completed'
       this.addToHistory(requestId, 'success', result)
       
       console.log(`✅ [${requestId}] Analysis completed in ${totalTime}ms`)
-      console.log(`⚡ Performance: ${processingTimes.inference || 0}ms inference, ${processingTimes.total || totalTime}ms total`)
       
       this.eventBus?.emit('ai:analysis-completed', { 
         requestId, 
@@ -290,7 +272,7 @@ export class AIService {
       const isTimeout = error.name === 'TimeoutError' || error.message.includes('timeout')
       
       // Update metrics
-      this.updateMetrics(false, responseTime, 0, isTimeout)
+      this.updateMetrics(false, responseTime, isTimeout)
       
       // Update request tracking
       if (this.activeRequests.has(requestId)) {
@@ -315,12 +297,12 @@ export class AIService {
   }
 
   /**
-   * Optimize image for faster processing - More aggressive optimization
+   * Optimize image for processing
    */
   async optimizeImage(imageDataUrl) {
     try {
-      // Skip if already optimized or small
-      if (this.getImageSize(imageDataUrl) < 50 * 1024) { // Less than 50KB
+      // Skip if already small
+      if (this.getImageSize(imageDataUrl) < 100 * 1024) { // Less than 100KB
         return imageDataUrl
       }
       
@@ -330,8 +312,7 @@ export class AIService {
         const ctx = canvas.getContext('2d')
         
         img.onload = () => {
-          // More aggressive size reduction for faster processing
-          const maxSize = Math.min(this.config.maxImageSize, 512) // Limit to 512px max
+          const maxSize = this.config.maxImageSize
           let { width, height } = img
           
           // Calculate new dimensions
@@ -345,9 +326,9 @@ export class AIService {
           canvas.width = width
           canvas.height = height
           
-          // Draw and compress more aggressively
+          // Draw and compress
           ctx.drawImage(img, 0, 0, width, height)
-          const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.7) // Lower quality for speed
+          const optimizedDataUrl = canvas.toDataURL('image/jpeg', this.config.imageQuality)
           
           console.log(`⚡ Image optimized: ${this.getImageSize(imageDataUrl)}B → ${this.getImageSize(optimizedDataUrl)}B`)
           resolve(optimizedDataUrl)
@@ -376,11 +357,11 @@ export class AIService {
   }
 
   /**
-   * Enhanced request with better error handling and longer timeout
+   * FIXED: Enhanced request with proper timeout handling
    */
   async makeRequest(endpoint, method = 'POST', body = null, options = {}) {
     const {
-      timeout = this.config.timeout, // Use full timeout by default
+      timeout = this.config.timeout,
       headers = {},
       suppressErrors = false
     } = options
@@ -444,7 +425,7 @@ export class AIService {
   }
 
   /**
-   * Enhanced retry logic with exponential backoff
+   * Enhanced retry logic
    */
   async makeRequestWithRetry(endpoint, method, body, options = {}) {
     const { requestId } = options
@@ -458,16 +439,16 @@ export class AIService {
         lastError = error
         
         // Don't retry on certain errors
-        const noRetryErrors = ['400', '401', '403', '404', 'timeout', 'GPU out of memory']
+        const noRetryErrors = ['400', '401', '403', '404']
         const shouldNotRetry = noRetryErrors.some(errType => 
-          error.message.toLowerCase().includes(errType.toLowerCase())
+          error.message.includes(errType)
         )
         
         if (shouldNotRetry || attempt >= this.config.retryAttempts) {
           break
         }
         
-        const delay = this.config.retryDelay * Math.pow(2, attempt - 1) // Exponential backoff
+        const delay = this.config.retryDelay * attempt
         console.log(`🤖 [${requestId}] Retrying request (attempt ${attempt + 1}/${this.config.retryAttempts}) in ${delay}ms`)
         
         this.eventBus?.emit('ai:request-retry', { 
@@ -485,21 +466,15 @@ export class AIService {
   }
 
   /**
-   * Enhanced metrics tracking
+   * FIXED: Enhanced metrics tracking
    */
-  updateMetrics(success, responseTime, inferenceTime = 0, isTimeout = false) {
+  updateMetrics(success, responseTime, isTimeout = false) {
     this.metrics.totalRequests++
     
     if (success) {
       this.metrics.successfulRequests++
       this.metrics.totalResponseTime += responseTime
       this.metrics.averageResponseTime = this.metrics.totalResponseTime / this.metrics.successfulRequests
-      
-      if (inferenceTime > 0) {
-        this.metrics.totalInferenceTime += inferenceTime
-        this.metrics.successfulInferences++
-        this.metrics.averageInferenceTime = this.metrics.totalInferenceTime / this.metrics.successfulInferences
-      }
     } else {
       this.metrics.failedRequests++
       if (isTimeout) {
@@ -521,7 +496,7 @@ export class AIService {
     
     try {
       const healthResponse = await this.makeRequest('/health', 'GET', null, { 
-        timeout: 10000, // Shorter timeout for health checks
+        timeout: 15000,
         suppressErrors: true 
       })
       
@@ -543,7 +518,7 @@ export class AIService {
       })
       
       // Attempt to reconnect
-      setTimeout(() => this.testConnection(), 5000)
+      setTimeout(() => this.testConnection(), 10000)
     }
   }
 
@@ -561,7 +536,6 @@ export class AIService {
       metrics: { ...this.metrics, uptime },
       activeRequests: this.activeRequests.size,
       connectionRetries: this.connectionRetries,
-      supportedModels: [...this.supportedModels],
       currentModel: this.currentModel,
       serverCapabilities: this.serverCapabilities,
       serverStats: this.serverStats,
@@ -570,28 +544,8 @@ export class AIService {
   }
 
   /**
-   * Update server configuration
+   * Setup event listeners
    */
-  async updateServerConfig(newConfig) {
-    try {
-      const response = await this.makeRequest('/config', 'POST', newConfig, { timeout: 10000 })
-      
-      if (response.status === 'updated') {
-        console.log('⚙️ Server configuration updated')
-        this.serverCapabilities = { ...this.serverCapabilities, ...response.config }
-        this.eventBus?.emit('ai:server-config-updated', response.config)
-        return response.config
-      }
-      
-      throw new Error('Failed to update server configuration')
-      
-    } catch (error) {
-      console.error('❌ Failed to update server config:', error.message)
-      throw error
-    }
-  }
-
-  // ... (rest of the methods remain the same with minor enhancements)
   setupEventListeners() {
     this.eventBus?.on('config:ai-server-changed', (event) => {
       this.updateServerUrl(event.data.url)
@@ -604,12 +558,11 @@ export class AIService {
     this.eventBus?.on('ai:retry-connection', () => {
       this.retryConnection()
     })
-    
-    this.eventBus?.on('ai:optimize-settings', (event) => {
-      this.updateConfig(event.data)
-    })
   }
 
+  /**
+   * Update server URL
+   */
   updateServerUrl(newUrl) {
     const oldUrl = this.config.serverUrl
     this.config.serverUrl = newUrl.trim()
@@ -622,11 +575,17 @@ export class AIService {
     }
   }
 
+  /**
+   * Retry connection
+   */
   async retryConnection() {
     console.log('🤖 Retrying connection...')
     await this.testConnection()
   }
 
+  /**
+   * Start health monitoring
+   */
   startHealthMonitoring() {
     if (this.healthMonitorInterval) {
       clearInterval(this.healthMonitorInterval)
@@ -637,6 +596,9 @@ export class AIService {
     }, this.healthCheckInterval)
   }
 
+  /**
+   * Stop health monitoring
+   */
   stopHealthMonitoring() {
     if (this.healthMonitorInterval) {
       clearInterval(this.healthMonitorInterval)
@@ -644,6 +606,9 @@ export class AIService {
     }
   }
 
+  /**
+   * Add to history
+   */
   addToHistory(requestId, status, data) {
     this.requestHistory.unshift({
       id: requestId,
@@ -657,19 +622,31 @@ export class AIService {
     }
   }
 
+  /**
+   * Generate request ID
+   */
   generateRequestId() {
     return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   }
 
+  /**
+   * Get history
+   */
   getHistory(limit = 10) {
     return this.requestHistory.slice(0, limit)
   }
 
+  /**
+   * Clear history
+   */
   clearHistory() {
     this.requestHistory = []
     console.log('🤖 Request history cleared')
   }
 
+  /**
+   * Update configuration
+   */
   updateConfig(newConfig) {
     const oldConfig = { ...this.config }
     this.config = { ...this.config, ...newConfig }
@@ -681,8 +658,11 @@ export class AIService {
     console.log('🤖 Configuration updated')
   }
 
+  /**
+   * Shutdown
+   */
   async shutdown() {
-    console.log('🤖 Shutting down Enhanced AI Service...')
+    console.log('🤖 Shutting down AI Service...')
     
     this.stopHealthMonitoring()
     
@@ -694,7 +674,7 @@ export class AIService {
     this.isInitialized = false
     this.isConnected = false
     
-    console.log('✅ Enhanced AI Service shut down')
+    console.log('✅ AI Service shut down')
   }
 }
 

@@ -2,18 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Vision Studio - Eyes for the Blind</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Let Me Take A Look - AI Vision Studio - Eyes for the Blind</title>
     <meta name="description" content="AI-powered vision assistance for blind and visually impaired users. Real-time image analysis with voice feedback.">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="AI Vision Studio">
     
     <!-- Accessibility Meta Tags -->
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AI Vision Studio">
     
-    <!-- Fonts -->
+    <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Stylesheets -->
@@ -21,20 +26,20 @@
     <link rel="stylesheet" href="./src/style/component.css">
     <link rel="stylesheet" href="./src/style/animations.css">
     <link rel="stylesheet" href="./src/style/accessibility.css">
-    <link rel="stylesheet" href="./src/style/mobile.css">
-</head>
-<body>
-    <!-- Skip Links for Screen Readers -->
+    <link rel="stylesheet" href="./src/style/responsive.css">
+    
+    <!-- Skip links for accessibility -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <a href="#camera-controls" class="skip-link">Skip to camera controls</a>
-    <a href="#analysis-controls" class="skip-link">Skip to analysis controls</a>
-
+    <a href="#voice-controls" class="skip-link">Skip to voice controls</a>
+</head>
+<body>
     <!-- Live Regions for Screen Reader Announcements -->
     <div aria-live="polite" aria-atomic="true" class="live-region" id="statusAnnouncements"></div>
     <div aria-live="assertive" aria-atomic="true" class="live-region" id="urgentAnnouncements"></div>
 
     <div id="app" class="app-container">
-        <!-- Navigation Header - Simplified for Mobile -->
+        <!-- Navigation Header -->
         <nav class="nav-header" role="banner">
             <div class="nav-content">
                 <div class="nav-brand">
@@ -52,43 +57,69 @@
                         </svg>
                     </div>
                     <div class="brand-text">
-                        <h1>AI Vision</h1>
-                        <span class="sr-only">Eyes for the Blind - AI-powered vision assistance</span>
+                        <h1 class="brand-title">Let Me Take A Look</h1>
+                        <span class="brand-subtitle">AI Vision Studio - Eyes for the Blind</span>
                     </div>
                 </div>
                 
                 <div class="nav-controls">
-                    <div class="status-indicators mobile-hidden">
+                    <div class="status-indicators">
                         <div class="status-item" id="systemStatus" role="status" aria-live="polite">
                             <div class="status-dot" aria-hidden="true"></div>
-                            <span>Ready</span>
+                            <span class="status-text">System Ready</span>
                         </div>
                     </div>
+                    
+                    <button class="nav-btn" id="settingsBtn" 
+                            aria-label="Open settings (Ctrl+,)"
+                            data-tooltip="Settings (Ctrl+,)">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </button>
+                    
+                    <button class="nav-btn" id="helpBtn" 
+                            aria-label="Show help (Ctrl+Shift+H)"
+                            data-tooltip="Help (Ctrl+Shift+H)">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
         </nav>
 
-        <main class="main-content mobile-stacked" id="main-content" role="main">
+        <main class="main-content responsive-layout" id="main-content" role="main">
             <!-- Camera Section -->
             <section class="camera-section" role="region" aria-labelledby="camera-heading">
-                <div class="section-header mobile-simple">
-                    <h2 id="camera-heading">📹 Camera</h2>
-                    <div class="camera-stats mobile-compact" role="group" aria-label="Camera statistics">
+                <div class="section-header">
+                    <h2 id="camera-heading">📹 Live Camera Feed</h2>
+                    <div class="camera-stats" role="group" aria-label="Camera statistics">
                         <div class="stat-item">
-                            <span class="stat-label">Status</span>
-                            <span class="stat-value" id="cameraStatusSimple" aria-live="polite">Off</span>
+                            <span class="stat-label">Resolution</span>
+                            <span class="stat-value" id="cameraResolution" aria-live="polite">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">FPS</span>
+                            <span class="stat-value" id="cameraFPS" aria-live="polite">0</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="camera-container">
-                    <div class="camera-viewport mobile-viewport" role="region" aria-label="Camera viewfinder">
-                        <video id="videoElement" autoplay muted playsinline aria-label="Live camera feed"></video>
+                    <div class="camera-viewport" role="region" aria-label="Camera viewfinder">
+                        <video id="videoElement" 
+                               autoplay 
+                               muted 
+                               playsinline 
+                               aria-label="Live camera feed"
+                               poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23000'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.35em' fill='white'%3ECamera Off%3C/text%3E%3C/svg%3E"></video>
                         <canvas id="capturedCanvas" style="display: none;" aria-hidden="true"></canvas>
                         
                         <!-- Camera Overlay -->
                         <div class="camera-overlay" aria-hidden="true">
-                            <div class="overlay-corners mobile-corners">
+                            <div class="overlay-corners">
                                 <div class="corner corner-tl"></div>
                                 <div class="corner corner-tr"></div>
                                 <div class="corner corner-bl"></div>
@@ -97,198 +128,316 @@
                             
                             <div class="recording-indicator" id="recordingIndicator" style="display: none;" role="status" aria-live="polite">
                                 <div class="recording-dot" aria-hidden="true"></div>
-                                <span>LIVE</span>
+                                <span>LIVE ANALYSIS</span>
                             </div>
                         </div>
                         
-                        <!-- Mobile-Optimized Camera Controls -->
-                        <div class="camera-controls mobile-controls" id="camera-controls" role="group" aria-label="Camera controls">
-                            <button class="control-btn primary mobile-btn" id="startCameraBtn" 
+                        <!-- Camera Controls -->
+                        <div class="camera-controls" id="camera-controls" role="group" aria-label="Camera controls">
+                            <button class="control-btn primary" id="startCameraBtn" 
                                     data-tooltip="Start Camera (Ctrl+C)" 
-                                    aria-describedby="camera-help">
-                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M4 6.5C4 4.01 6.01 2 8.5 2S13 4.01 13 6.5V10H4V6.5ZM15 10V6.5C15 3.46 12.54 1 9.5 1S4 3.46 4 6.5V10C2.9 10 2 10.9 2 12V19C2 20.1 2.9 21 4 21H15C16.1 21 17 20.1 17 19V12C17 10.9 16.1 10 15 10Z"/>
+                                    aria-describedby="camera-help"
+                                    data-voice-command="Ctrl+C">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 9a3.02 3.02 0 0 0-3 3c0 1.642 1.358 3 3 3 1.641 0 3-1.358 3-3 0-1.642-1.359-3-3-3z"/>
+                                    <path d="M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684L22.054 12l-.105-.316C21.927 11.617 19.633 5 12 5zm0 12c-2.757 0-5-2.243-5-5s2.243-5 5-5 5 2.243 5 5-2.243 5-5 5z"/>
                                 </svg>
-                                <span class="mobile-text">Start</span>
+                                <span>Start Camera</span>
                             </button>
                             
-                            <button class="control-btn secondary mobile-btn" id="stopCameraBtn" disabled 
+                            <button class="control-btn secondary" id="stopCameraBtn" disabled 
                                     data-tooltip="Stop Camera" 
                                     aria-label="Stop camera">
-                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <rect x="6" y="6" width="12" height="12" rx="2"/>
                                 </svg>
-                                <span class="mobile-text">Stop</span>
+                                <span>Stop</span>
                             </button>
                             
-                            <button class="control-btn accent mobile-btn" id="captureBtn" disabled 
+                            <button class="control-btn accent" id="captureBtn" disabled 
                                     data-tooltip="Capture Frame (Spacebar)" 
-                                    aria-label="Capture current frame for analysis">
-                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    aria-label="Capture current frame for analysis"
+                                    data-voice-command="Spacebar">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <circle cx="12" cy="12" r="3"/>
                                     <path d="M12 1a11 11 0 000 22 11 11 0 000-22zM12 19a7 7 0 110-14 7 7 0 010 14z"/>
                                 </svg>
-                                <span class="mobile-text">Capture</span>
+                                <span>Capture</span>
                             </button>
                         </div>
                     </div>
                 </div>
                 
                 <div id="camera-help" class="sr-only">
-                    Use the Start button or Ctrl+C to start the camera. Press Spacebar or the Capture button to take a photo for analysis.
+                    Use Ctrl+C to start or stop the camera. Press Spacebar to capture a frame for analysis.
+                    Camera access requires HTTPS or localhost for security.
                 </div>
             </section>
 
-            <!-- Analysis Panel - Simplified for Mobile -->
-            <section class="analysis-section mobile-analysis" role="region" aria-labelledby="analysis-heading">
-                <!-- AI Configuration Panel - Streamlined -->
-                <div class="config-panel mobile-config">
+            <!-- Analysis Panel -->
+            <section class="analysis-section" role="region" aria-labelledby="analysis-heading">
+                <!-- AI Configuration Panel -->
+                <div class="config-panel">
                     <div class="panel-header">
-                        <h3 id="analysis-heading">🤖 Analysis Type</h3>
+                        <h3 id="analysis-heading">🤖 AI Configuration</h3>
+                        <div class="panel-actions">
+                            <button class="icon-btn" id="refreshConfig" 
+                                    data-tooltip="Refresh Settings" 
+                                    aria-label="Refresh AI configuration">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M8 3a5 5 0 104.546 2.914.5.5 0 00-.908-.417A4 4 0 118 4v1z"/>
+                                    <path d="M8 4.466V.534a.25.25 0 01.41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 018 4.466z"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="config-grid mobile-grid">
+                    <div class="config-grid">
                         <div class="config-group">
-                            <label class="config-label mobile-label" for="analysisPrompt">Choose what you want to know:</label>
-                            <select id="analysisPrompt" class="config-select mobile-select" aria-describedby="prompt-help">
-                                <option value="Describe this image in detail for a blind person. Include people, objects, colors, text, lighting, and any safety considerations. Be specific and comprehensive.">🔍 What do you see?</option>
-                                <option value="Help a blind person navigate safely. Describe pathways, obstacles, stairs, doors, ground surface, and any hazards. Focus on mobility and safety.">🚶 Safe to walk here?</option>
-                                <option value="Read all visible text in this image out loud. Include signs, labels, documents, menus, or any written content. Read exactly as written.">📖 Read all text</option>
-                                <option value="Identify products for shopping. Include product names, brands, prices, sizes, expiration dates, and any important product information.">🛒 What product is this?</option>
-                                <option value="Describe this social situation. Include how many people, what they're doing, the setting, mood, seating arrangements, and social context.">👥 Who's here?</option>
-                                <option value="Describe clothing and appearance in detail. Include colors, styles, fit, condition, accessories, and overall appearance.">👔 What am I wearing?</option>
-                                <option value="Read this document completely. Include titles, main content, form fields, dates, contact information, and instructions.">📄 Read document</option>
-                                <option value="Describe food and cooking information. Include food items, cooking state, freshness, safety considerations, and any instructions.">🍽️ Food check</option>
-                                <option value="Analyze for safety and emergency information. Identify hazards, emergency exits, warning signs, and safety equipment.">⚠️ Safety check</option>
-                                <option value="Help with technology and devices. Describe screens, buttons, controls, status indicators, and usage instructions.">📱 Tech help</option>
-                                <option value="custom">✏️ Custom question...</option>
+                            <label class="config-label" for="analysisPrompt">Analysis Type</label>
+                            <select id="analysisPrompt" class="config-select" aria-describedby="prompt-help">
+                                <option value="Describe this image in detail for a blind person. Include people, objects, colors, text, lighting, and any safety considerations. Be specific and comprehensive.">🔍 Complete Scene Description</option>
+                                <option value="Help a blind person navigate safely. Describe pathways, obstacles, stairs, doors, ground surface, and any hazards. Focus on mobility and safety.">🚶 Navigation & Mobility Help</option>
+                                <option value="Read all visible text in this image out loud. Include signs, labels, documents, menus, or any written content. Read exactly as written.">📖 Read All Text</option>
+                                <option value="Identify products for shopping. Include product names, brands, prices, sizes, expiration dates, and any important product information.">🛒 Shopping Assistant</option>
+                                <option value="Describe this social situation. Include how many people, what they're doing, the setting, mood, seating arrangements, and social context.">👥 Social Situation</option>
+                                <option value="Describe clothing and appearance in detail. Include colors, styles, fit, condition, accessories, and overall appearance.">👔 Clothing & Appearance</option>
+                                <option value="Read this document completely. Include titles, main content, form fields, dates, contact information, and instructions.">📄 Document Reader</option>
+                                <option value="Describe food and cooking information. Include food items, cooking state, freshness, safety considerations, and any instructions.">🍽️ Food & Cooking Helper</option>
+                                <option value="Analyze for safety and emergency information. Identify hazards, emergency exits, warning signs, and safety equipment.">⚠️ Safety & Emergency</option>
+                                <option value="Help with technology and devices. Describe screens, buttons, controls, status indicators, and usage instructions.">📱 Technology Assistant</option>
+                                <option value="custom">✏️ Custom Prompt...</option>
                             </select>
                             <div id="prompt-help" class="sr-only">
                                 Choose the type of analysis that best fits what you need to understand about the image.
                             </div>
                         </div>
 
-                        <div class="config-group mobile-custom" id="customPromptGroup" style="display: none;">
-                            <label class="config-label mobile-label" for="customPrompt">Ask your question:</label>
-                            <textarea id="customPrompt" class="config-textarea mobile-textarea" 
-                                    placeholder="What would you like to know about this image?" 
-                                    rows="2"
+                        <div class="config-group" id="customPromptGroup" style="display: none;">
+                            <label class="config-label" for="customPrompt">Custom Prompt</label>
+                            <textarea id="customPrompt" class="config-textarea" 
+                                    placeholder="Enter your custom analysis prompt..." 
+                                    rows="3"
                                     aria-describedby="custom-help"></textarea>
                             <div id="custom-help" class="sr-only">
-                                Enter your own question about what you want to know.
+                                Enter a specific prompt to tell the AI exactly what you want to know about the image.
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Real-time Analysis Panel - Mobile Friendly -->
-                <div class="analysis-panel mobile-panel">
+                <!-- Real-time Analysis Panel -->
+                <div class="analysis-panel">
                     <div class="panel-header">
-                        <h3>⚡ Live Analysis</h3>
+                        <h3>⚡ Real-time Analysis</h3>
                         <div class="analysis-controls">
-                            <div class="toggle-switch mobile-toggle">
+                            <div class="toggle-switch">
                                 <input type="checkbox" id="enableRealtime" class="toggle-input" 
                                        aria-describedby="realtime-help">
                                 <label for="enableRealtime" class="toggle-label">
                                     <span class="toggle-slider" aria-hidden="true"></span>
-                                    <span class="toggle-text mobile-toggle-text">Live Mode</span>
+                                    <span class="toggle-text">Enable Live Analysis</span>
                                 </label>
                             </div>
                         </div>
                     </div>
 
-                    <div class="analysis-settings mobile-settings">
-                        <div class="setting-row mobile-setting">
-                            <label class="setting-label mobile-setting-label" for="analysisFPS">Speed:</label>
-                            <select id="analysisFPS" class="setting-select mobile-setting-select" aria-describedby="fps-help">
-                                <option value="0.2">🐌 Slow (5 sec)</option>
-                                <option value="0.5">🚶 Normal (2 sec)</option>
-                                <option value="1" selected>🏃 Fast (1 sec)</option>
+                    <div class="analysis-settings">
+                        <div class="setting-row">
+                            <label class="setting-label" for="analysisFPS">Analysis Frequency</label>
+                            <select id="analysisFPS" class="setting-select" aria-describedby="fps-help">
+                                <option value="0.2">🐌 Every 5 seconds</option>
+                                <option value="0.5" selected>🚶 Every 2 seconds</option>
+                                <option value="1">🏃 Every 1 second</option>
+                                <option value="2">⚡ Every 0.5 seconds</option>
                             </select>
                             <div id="fps-help" class="sr-only">
-                                Choose how often the AI looks at the camera during live analysis.
+                                Choose how often the AI analyzes the camera feed during live analysis.
+                                Higher frequencies use more resources.
                             </div>
                         </div>
 
-                        <div class="setting-row mobile-analyze">
-                            <button class="analyze-btn mobile-analyze-btn" id="analyzeBtn" 
+                        <div class="setting-row">
+                            <button class="analyze-btn" id="analyzeBtn" 
                                     aria-describedby="analyze-help"
-                                    data-voice-command="Tap to analyze">
+                                    data-voice-command="Ctrl+A or F1">
                                 <div class="btn-content">
                                     <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                         <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
                                     </svg>
-                                    <span>Analyze Photo</span>
+                                    <span>Analyze Current Frame</span>
                                 </div>
                                 <div class="btn-loader" style="display: none;" aria-hidden="true">
                                     <div class="spinner"></div>
                                 </div>
                             </button>
                             <div id="analyze-help" class="sr-only">
-                                Take a photo and analyze it with AI. You can also use F1 for quick access.
+                                Analyze the current camera frame. Use Ctrl+A or F1 for quick access.
                             </div>
                         </div>
                     </div>
                     
                     <div id="realtime-help" class="sr-only">
-                        Turn on live mode to have the AI continuously describe what the camera sees.
+                        Enable continuous analysis of the camera feed. The AI will describe what it sees in real-time.
+                        This uses more system resources and may affect performance.
                     </div>
                 </div>
 
-                <!-- Results Display - Mobile Optimized -->
-                <div class="results-panel mobile-results">
+                <!-- Results Display -->
+                <div class="results-panel">
                     <div class="panel-header">
-                        <h3>👁️ What AI Sees</h3>
-                        <div class="results-meta mobile-meta">
+                        <h3>👁️ Analysis Results</h3>
+                        <div class="results-meta">
                             <div class="analysis-status">
                                 <div class="status-indicator" id="analysisStatus" role="status" aria-live="polite">Ready</div>
                             </div>
-                            <div class="results-stats mobile-stats">
-                                <span id="lastUpdate" aria-live="polite">Tap analyze</span>
+                            <div class="results-stats">
+                                <span id="lastUpdate" aria-live="polite">Not started</span>
+                                <span id="responseTime" class="response-time" aria-live="polite"></span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="results-content mobile-content">
-                        <div class="analysis-result mobile-result" id="analysisContent" 
+                    <div class="results-content">
+                        <div class="analysis-result" id="analysisContent" 
                              role="region" 
                              aria-live="polite" 
-                             aria-label="AI analysis results">
-                            <div class="placeholder-content mobile-placeholder">
-                                <svg width="48" height="48" fill="currentColor" viewBox="0 0 20 20" opacity="0.3" aria-hidden="true">
+                             aria-label="AI analysis results"
+                             tabindex="0">
+                            <div class="placeholder-content">
+                                <svg width="64" height="64" fill="currentColor" viewBox="0 0 20 20" opacity="0.3" aria-hidden="true">
                                     <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
                                 </svg>
-                                <p>Start your camera and tap "Analyze Photo" to get AI descriptions with voice feedback...</p>
+                                <p>Start your camera and capture a frame or enable real-time analysis to see AI descriptions here...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="analysis-metrics" id="analysisMetrics" style="display: none;" role="group" aria-label="Analysis metrics">
+                            <div class="metric-item">
+                                <span class="metric-label">Confidence</span>
+                                <div class="metric-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Analysis confidence">
+                                    <div class="metric-fill" id="confidenceBar"></div>
+                                </div>
+                                <span class="metric-value" id="confidenceValue" aria-live="polite">-</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Processing Time</span>
+                                <span class="metric-value" id="processingTime" aria-live="polite">-</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- System Status Panel - Simplified -->
-                <div class="status-panel mobile-status">
-                    <div class="status-grid mobile-status-grid" role="group" aria-label="System status">
-                        <div class="status-card mobile-card">
+                <!-- Voice Controls Section -->
+                <div class="voice-panel" id="voice-controls">
+                    <div class="panel-header">
+                        <h3>🔊 Voice Settings</h3>
+                        <div class="voice-status" id="voiceStatus">
+                            <div class="status-dot connected" id="voiceStatusDot" aria-hidden="true"></div>
+                            <span id="voiceStatusText">Enabled</span>
+                        </div>
+                    </div>
+                    
+                    <div class="voice-settings">
+                        <div class="setting-row">
+                            <label class="setting-label" for="enableVoice">Voice Feedback</label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="enableVoice" class="toggle-input" checked 
+                                       aria-describedby="voice-feedback-help">
+                                <label for="enableVoice" class="toggle-label">
+                                    <span class="toggle-slider" aria-hidden="true"></span>
+                                    <span class="toggle-text">Enabled</span>
+                                </label>
+                            </div>
+                            <div id="voice-feedback-help" class="sr-only">
+                                Enable or disable text-to-speech for all AI responses and system feedback.
+                            </div>
+                        </div>
+                        
+                        <div class="setting-row">
+                            <label class="setting-label" for="autoReadResults">Auto-read Results</label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="autoReadResults" class="toggle-input" checked
+                                       aria-describedby="auto-read-help">
+                                <label for="autoReadResults" class="toggle-label">
+                                    <span class="toggle-slider" aria-hidden="true"></span>
+                                    <span class="toggle-text">Enabled</span>
+                                </label>
+                            </div>
+                            <div id="auto-read-help" class="sr-only">
+                                Automatically read analysis results when they complete.
+                            </div>
+                        </div>
+                        
+                        <div class="setting-row">
+                            <label class="setting-label" for="speechRate">Speech Rate</label>
+                            <input type="range" id="speechRate" 
+                                   min="0.5" max="2.0" step="0.1" value="1.0" 
+                                   class="voice-slider"
+                                   aria-describedby="speech-rate-help">
+                            <span class="slider-value" aria-live="polite">1.0x</span>
+                            <div id="speech-rate-help" class="sr-only">
+                                Adjust how fast the voice speaks. Range from 0.5x (slow) to 2.0x (fast).
+                            </div>
+                        </div>
+                        
+                        <div class="setting-row">
+                            <label class="setting-label" for="voiceSelect">Voice</label>
+                            <select id="voiceSelect" class="config-select" aria-describedby="voice-select-help">
+                                <option>Loading voices...</option>
+                            </select>
+                            <div id="voice-select-help" class="sr-only">
+                                Choose from available text-to-speech voices on your system.
+                            </div>
+                        </div>
+                        
+                        <div class="voice-actions">
+                            <button class="control-btn secondary" id="testVoiceBtn"
+                                    aria-label="Test current voice settings">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                    <path d="M6.271 5.055a.5.5 0 0 1 .52.245L7 6.35a.5.5 0 0 1 0 .7L6.791 8.05a.5.5 0 0 1-.52.245A4.5 4.5 0 0 1 3 4.5a4.5 4.5 0 0 1 3.271.555z"/>
+                                </svg>
+                                Test Voice
+                            </button>
+                            
+                            <button class="control-btn secondary" id="stopVoiceBtn"
+                                    aria-label="Stop current speech (Escape key)">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                    <path d="M5 6.5A1.5 1.5 0 0 1 6.5 5h3A1.5 1.5 0 0 1 11 6.5v3A1.5 1.5 0 0 1 9.5 11h-3A1.5 1.5 0 0 1 5 9.5v-3z"/>
+                                </svg>
+                                Stop
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status Panel -->
+                <div class="status-panel">
+                    <div class="status-grid" role="group" aria-label="System status">
+                        <div class="status-card">
                             <div class="status-icon camera-status" aria-hidden="true">
-                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/>
                                 </svg>
                             </div>
                             <div class="status-info">
                                 <span class="status-label">Camera</span>
-                                <span class="status-value" id="cameraStatusText" aria-live="polite">Off</span>
+                                <span class="status-value" id="cameraStatusText" aria-live="polite">Disconnected</span>
                             </div>
                             <div class="status-dot" id="cameraStatusDot" aria-hidden="true"></div>
                         </div>
 
-                        <div class="status-card mobile-card">
+                        <div class="status-card">
                             <div class="status-icon ai-status" aria-hidden="true">
-                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
                             <div class="status-info">
-                                <span class="status-label">AI</span>
-                                <span class="status-value" id="aiStatusText" aria-live="polite">Ready</span>
+                                <span class="status-label">AI Server</span>
+                                <span class="status-value" id="aiStatusText" aria-live="polite">Not tested</span>
                             </div>
                             <div class="status-dot" id="aiStatusDot" aria-hidden="true"></div>
                         </div>
@@ -297,69 +446,39 @@
             </section>
         </main>
 
-        <!-- Text-to-Speech Controls - Moved to Bottom -->
-        <section class="voice-section mobile-voice-section" role="region" aria-labelledby="voice-heading">
-            <div class="voice-controls mobile-voice-controls">
-                <div class="panel-header mobile-voice-header">
-                    <h3 id="voice-heading">🔊 Voice Settings</h3>
-                    <div class="voice-status mobile-voice-status" id="voiceStatus">
-                        <div class="status-dot connected" id="voiceStatusDot"></div>
-                        <span id="voiceStatusText">Enabled</span>
+        <!-- Performance Monitor -->
+        <div class="performance-monitor" id="performanceMonitor">
+            <div class="monitor-header">
+                <span>Performance</span>
+                <button class="monitor-toggle" id="toggleMonitor" aria-label="Toggle performance monitor">−</button>
+            </div>
+            <div class="monitor-content">
+                <div class="perf-metric">
+                    <span>CPU</span>
+                    <div class="perf-bar" role="progressbar" aria-label="CPU usage">
+                        <div class="perf-fill"></div>
                     </div>
+                    <span aria-live="polite">-</span>
                 </div>
-                
-                <div class="voice-settings mobile-voice-settings">
-                    <div class="setting-row mobile-voice-row">
-                        <label class="setting-label mobile-voice-label">Voice Feedback:</label>
-                        <div class="toggle-switch mobile-voice-toggle">
-                            <input type="checkbox" id="enableVoice" class="toggle-input" checked>
-                            <label for="enableVoice" class="toggle-label">
-                                <span class="toggle-slider" aria-hidden="true"></span>
-                                <span class="toggle-text">On</span>
-                            </label>
-                        </div>
+                <div class="perf-metric">
+                    <span>Memory</span>
+                    <div class="perf-bar" role="progressbar" aria-label="Memory usage">
+                        <div class="perf-fill"></div>
                     </div>
-                    
-                    <div class="setting-row mobile-voice-row">
-                        <label class="setting-label mobile-voice-label">Auto-read Results:</label>
-                        <div class="toggle-switch mobile-voice-toggle">
-                            <input type="checkbox" id="autoReadResults" class="toggle-input" checked>
-                            <label for="autoReadResults" class="toggle-label">
-                                <span class="toggle-slider" aria-hidden="true"></span>
-                                <span class="toggle-text">On</span>
-                            </label>
-                        </div>
+                    <span aria-live="polite">-</span>
+                </div>
+                <div class="perf-metric">
+                    <span>Network</span>
+                    <div class="perf-bar" role="progressbar" aria-label="Network latency">
+                        <div class="perf-fill"></div>
                     </div>
-                    
-                    <div class="setting-row mobile-voice-row">
-                        <label class="setting-label mobile-voice-label" for="speechRate">Speech Speed:</label>
-                        <input type="range" id="speechRate" min="0.5" max="2.0" step="0.1" value="1.0" class="voice-slider mobile-voice-slider">
-                        <span class="slider-value mobile-slider-value">1.0x</span>
-                    </div>
-                    
-                    <div class="voice-actions mobile-voice-actions">
-                        <button class="control-btn secondary mobile-voice-btn" id="testVoiceBtn">
-                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                                <path d="M6.271 5.055a.5.5 0 0 1 .52.245L7 6.35a.5.5 0 0 1 0 .7L6.791 8.05a.5.5 0 0 1-.52.245A4.5 4.5 0 0 1 3 4.5a4.5 4.5 0 0 1 3.271.555z"/>
-                            </svg>
-                            <span>Test Voice</span>
-                        </button>
-                        
-                        <button class="control-btn secondary mobile-voice-btn" id="stopVoiceBtn">
-                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                                <path d="M5 6.5A1.5 1.5 0 0 1 6.5 5h3A1.5 1.5 0 0 1 11 6.5v3A1.5 1.5 0 0 1 9.5 11h-3A1.5 1.5 0 0 1 5 9.5v-3z"/>
-                            </svg>
-                            <span>Stop</span>
-                        </button>
-                    </div>
+                    <span id="networkLatency" aria-live="polite">-</span>
                 </div>
             </div>
-        </section>
+        </div>
 
         <!-- Toast Notifications -->
-        <div id="toastContainer" class="toast-container mobile-toast" role="region" aria-label="Notifications" aria-live="polite"></div>
+        <div id="toastContainer" class="toast-container" role="region" aria-label="Notifications" aria-live="polite"></div>
     </div>
 
     <!-- Loading Overlay -->
@@ -367,6 +486,9 @@
         <div class="loading-content">
             <div class="loading-spinner" aria-hidden="true"></div>
             <p>Initializing AI Vision System...</p>
+            <div class="loading-details" style="margin-top: 1rem; opacity: 0.7; font-size: 0.875rem;">
+                Please allow camera access when prompted
+            </div>
         </div>
     </div>
 
@@ -387,5 +509,77 @@
             });
         }
     </script>
+    
+    <!-- Critical CSS for faster loading -->
+    <style>
+        /* Critical path CSS - inline for faster loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            color: white;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: #667eea;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            z-index: 1000;
+            transition: top 0.3s;
+        }
+        
+        .skip-link:focus {
+            top: 6px;
+        }
+        
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        .live-region {
+            position: absolute;
+            left: -10000px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+    </style>
 </body>
 </html>
+
