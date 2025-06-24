@@ -196,31 +196,32 @@
                         <div class="config-group">
                             <label class="config-label" for="analysisPrompt">Analysis Type</label>
                             <select id="analysisPrompt" class="config-select" aria-describedby="prompt-help">
-                                <option value="Describe this image in detail for a blind person. Include people, objects, colors, text, lighting, and any safety considerations. Be specific and comprehensive.">🔍 Complete Scene Description</option>
-                                <option value="Help a blind person navigate safely. Describe pathways, obstacles, stairs, doors, ground surface, and any hazards. Focus on mobility and safety.">🚶 Navigation & Mobility Help</option>
-                                <option value="Read all visible text in this image out loud. Include signs, labels, documents, menus, or any written content. Read exactly as written.">📖 Read All Text</option>
-                                <option value="Identify products for shopping. Include product names, brands, prices, sizes, expiration dates, and any important product information.">🛒 Shopping Assistant</option>
-                                <option value="Describe this social situation. Include how many people, what they're doing, the setting, mood, seating arrangements, and social context.">👥 Social Situation</option>
-                                <option value="Describe clothing and appearance in detail. Include colors, styles, fit, condition, accessories, and overall appearance.">👔 Clothing & Appearance</option>
-                                <option value="Read this document completely. Include titles, main content, form fields, dates, contact information, and instructions.">📄 Document Reader</option>
-                                <option value="Describe food and cooking information. Include food items, cooking state, freshness, safety considerations, and any instructions.">🍽️ Food & Cooking Helper</option>
-                                <option value="Analyze for safety and emergency information. Identify hazards, emergency exits, warning signs, and safety equipment.">⚠️ Safety & Emergency</option>
-                                <option value="Help with technology and devices. Describe screens, buttons, controls, status indicators, and usage instructions.">📱 Technology Assistant</option>
+                                <!-- OPTIMIZED: Shorter, more efficient prompts for 5-second responses -->
+                                <option value="Describe this image for a blind person. Include people, objects, colors, and setting.">🔍 Complete Scene Description</option>
+                                <option value="Describe pathways, obstacles, stairs, doors, and any safety hazards for navigation.">🚶 Navigation & Safety</option>
+                                <option value="Read all visible text in this image. Include signs, labels, and written content.">📖 Read All Text</option>
+                                <option value="Identify products with names, brands, prices, and sizes for shopping.">🛒 Shopping Assistant</option>
+                                <option value="Describe people, their activities, the setting, and social context.">👥 Social Situation</option>
+                                <option value="Describe clothing, colors, styles, and overall appearance.">👔 Clothing & Appearance</option>
+                                <option value="Read this document including titles, content, and important information.">📄 Document Reader</option>
+                                <option value="Describe food items, freshness, cooking state, and safety considerations.">🍽️ Food & Cooking</option>
+                                <option value="Identify safety hazards, emergency exits, warning signs, and safety equipment.">⚠️ Safety & Emergency</option>
+                                <option value="Describe screens, buttons, controls, and device status indicators.">📱 Technology Helper</option>
                                 <option value="custom">✏️ Custom Prompt...</option>
                             </select>
                             <div id="prompt-help" class="sr-only">
-                                Choose the type of analysis that best fits what you need to understand about the image.
+                                Choose the type of analysis that best fits what you need to understand about the image. Optimized for fast 5-second responses.
                             </div>
                         </div>
 
                         <div class="config-group" id="customPromptGroup" style="display: none;">
                             <label class="config-label" for="customPrompt">Custom Prompt</label>
                             <textarea id="customPrompt" class="config-textarea" 
-                                    placeholder="Enter your custom analysis prompt..." 
+                                    placeholder="Enter your custom analysis prompt (keep it concise for faster responses)..." 
                                     rows="3"
                                     aria-describedby="custom-help"></textarea>
                             <div id="custom-help" class="sr-only">
-                                Enter a specific prompt to tell the AI exactly what you want to know about the image.
+                                Enter a specific prompt to tell the AI exactly what you want to know about the image. Shorter prompts give faster responses.
                             </div>
                         </div>
                     </div>
@@ -246,14 +247,14 @@
                         <div class="setting-row">
                             <label class="setting-label" for="analysisFPS">Analysis Frequency</label>
                             <select id="analysisFPS" class="setting-select" aria-describedby="fps-help">
-                                <option value="0.2">🐌 Every 5 seconds</option>
-                                <option value="0.5" selected>🚶 Every 2 seconds</option>
-                                <option value="1">🏃 Every 1 second</option>
-                                <option value="2">⚡ Every 0.5 seconds</option>
+                                <option value="0.2">🐌 Every 5 seconds (Recommended for stability)</option>
+                                <option value="0.33">🚶 Every 3 seconds (Balanced)</option>
+                                <option value="0.5" selected>🏃 Every 2 seconds (Default)</option>
+                                <option value="1">⚡ Every 1 second (High performance needed)</option>
                             </select>
                             <div id="fps-help" class="sr-only">
                                 Choose how often the AI analyzes the camera feed during live analysis.
-                                Higher frequencies use more resources.
+                                More frequent analysis requires better hardware performance. Each analysis takes about 5 seconds.
                             </div>
                         </div>
 
@@ -272,14 +273,14 @@
                                 </div>
                             </button>
                             <div id="analyze-help" class="sr-only">
-                                Analyze the current camera frame. Use Ctrl+A or F1 for quick access.
+                                Analyze the current camera frame with detailed description. Takes about 5 seconds. Use Ctrl+A or F1 for quick access.
                             </div>
                         </div>
                     </div>
                     
                     <div id="realtime-help" class="sr-only">
-                        Enable continuous analysis of the camera feed. The AI will describe what it sees in real-time.
-                        This uses more system resources and may affect performance.
+                        Enable continuous analysis of the camera feed. The AI will describe what it sees in real-time using brief descriptions.
+                        Real-time analysis uses more system resources and each analysis takes about 5 seconds.
                     </div>
                 </div>
 
@@ -309,6 +310,7 @@
                                     <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
                                 </svg>
                                 <p>Start your camera and capture a frame or enable real-time analysis to see AI descriptions here...</p>
+                                <p class="placeholder-note">🎯 Optimized for 5-second responses with concise, helpful descriptions</p>
                             </div>
                         </div>
                         
@@ -321,7 +323,7 @@
                                 <span class="metric-value" id="confidenceValue" aria-live="polite">-</span>
                             </div>
                             <div class="metric-item">
-                                <span class="metric-label">Processing Time</span>
+                                <span class="metric-label">Response Time</span>
                                 <span class="metric-value" id="processingTime" aria-live="polite">-</span>
                             </div>
                         </div>
@@ -579,7 +581,13 @@
             height: 1px;
             overflow: hidden;
         }
+
+        /* Additional styling for optimized prompts */
+        .placeholder-note {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-top: 0.5rem;
+        }
     </style>
 </body>
 </html>
-

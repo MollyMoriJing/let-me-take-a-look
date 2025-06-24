@@ -8,6 +8,10 @@ export class UIManager {
     this.modals = new Map()
     this.tooltips = new Map()
     
+    // FIXED: Real-time status tracking
+    this.isRealtimeActive = false
+    this.lastRealtimeUpdate = 0
+    
     // Animation queue
     this.animationQueue = []
     this.isAnimating = false
@@ -27,25 +31,12 @@ export class UIManager {
     try {
       console.log('🎨 Initializing Enhanced UI Manager...')
       
-      // Wait for DOM to be ready
       await this.waitForDOM()
-      
-      // Setup form handlers
       this.setupFormHandlers()
-      
-      // Setup global UI event listeners
       this.setupGlobalEventListeners()
-      
-      // Setup keyboard shortcuts
       this.setupKeyboardShortcuts()
-      
-      // Initialize tooltips
       this.initializeTooltips()
-      
-      // Setup theme system
       this.initializeTheme()
-      
-      // Verify critical DOM elements exist
       this.verifyDOMElements()
       
       this.isInitialized = true
@@ -103,7 +94,7 @@ export class UIManager {
   }
 
   /**
-   * FIXED: Setup form handlers with proper prompt handling
+   * FIXED: Setup form handlers with real-time status tracking
    */
   setupFormHandlers() {
     // AI Server URL input
@@ -115,7 +106,7 @@ export class UIManager {
       console.log('✅ AI Server URL handler set')
     }
 
-    // FIXED: Analysis prompt selector with proper event handling
+    // Analysis prompt selector
     const promptSelect = document.getElementById('analysisPrompt')
     const customPromptGroup = document.getElementById('customPromptGroup')
     const customPromptTextarea = document.getElementById('customPrompt')
@@ -125,14 +116,11 @@ export class UIManager {
         const selectedValue = e.target.value
         const isCustom = selectedValue === 'custom'
         
-        // Show/hide custom prompt input
         if (customPromptGroup) {
           customPromptGroup.style.display = isCustom ? 'block' : 'none'
         }
         
-        // FIXED: Emit proper prompt change event
         if (isCustom) {
-          // For custom prompts, use the textarea value
           const customPrompt = customPromptTextarea?.value?.trim() || 
             'Describe what you see in this image in detail.'
           
@@ -141,7 +129,6 @@ export class UIManager {
             isCustom: true
           })
         } else {
-          // For predefined prompts, use the selected value
           this.eventBus?.emit('config:prompt-changed', {
             prompt: selectedValue,
             isCustom: false
@@ -153,12 +140,11 @@ export class UIManager {
       console.log('✅ Analysis prompt handler set')
     }
 
-    // FIXED: Custom prompt textarea with proper event handling
+    // Custom prompt textarea
     if (customPromptTextarea) {
       customPromptTextarea.addEventListener('input', (e) => {
         const customPrompt = e.target.value.trim()
         
-        // Only emit if custom prompt is currently selected
         if (promptSelect?.value === 'custom') {
           this.eventBus?.emit('config:prompt-changed', {
             prompt: customPrompt || 'Describe what you see in this image in detail.',
@@ -170,7 +156,6 @@ export class UIManager {
       customPromptTextarea.addEventListener('change', (e) => {
         const customPrompt = e.target.value.trim()
         
-        // Only emit if custom prompt is currently selected
         if (promptSelect?.value === 'custom') {
           this.eventBus?.emit('config:prompt-changed', {
             prompt: customPrompt || 'Describe what you see in this image in detail.',
@@ -181,17 +166,27 @@ export class UIManager {
       console.log('✅ Custom prompt handler set')
     }
 
-    // Real-time analysis toggle
+    // FIXED: Real-time analysis toggle with proper status tracking
     const realtimeToggle = document.getElementById('enableRealtime')
     if (realtimeToggle) {
       realtimeToggle.addEventListener('change', (e) => {
-        console.log('🎨 Realtime toggle changed:', e.target.checked)
-        this.eventBus?.emit('realtime:toggle', { enabled: e.target.checked })
+        const enabled = e.target.checked
+        this.isRealtimeActive = enabled
         
-        // Show recording indicator
+        console.log('🎨 Realtime toggle changed:', enabled)
+        this.eventBus?.emit('realtime:toggle', { enabled })
+        
+        // Show/hide recording indicator
         const indicator = document.getElementById('recordingIndicator')
         if (indicator) {
-          indicator.style.display = e.target.checked ? 'flex' : 'none'
+          indicator.style.display = enabled ? 'flex' : 'none'
+        }
+        
+        // FIXED: Set appropriate status when toggling real-time
+        if (enabled) {
+          this.updateAnalysisStatus('analyzing', 'Starting Live Analysis...')
+        } else {
+          this.updateAnalysisStatus('ready', 'Ready')
         }
       })
       console.log('✅ Realtime toggle handler set')
@@ -266,6 +261,19 @@ export class UIManager {
         this.togglePerformanceMonitor()
       })
     }
+
+    // FIXED: Listen for real-time events to track status
+    if (this.eventBus) {
+      this.eventBus.on('realtime:started', () => {
+        this.isRealtimeActive = true
+        console.log('🎨 Real-time started - UI tracking enabled')
+      })
+
+      this.eventBus.on('realtime:stopped', () => {
+        this.isRealtimeActive = false
+        console.log('🎨 Real-time stopped - UI tracking disabled')
+      })
+    }
   }
 
   /**
@@ -311,7 +319,6 @@ export class UIManager {
    * Initialize theme system
    */
   initializeTheme() {
-    // Check for saved theme preference or use localStorage fallback
     let savedTheme = 'default'
     try {
       savedTheme = localStorage.getItem('ai-vision-theme') || 'default'
@@ -321,7 +328,6 @@ export class UIManager {
     
     this.applyTheme(savedTheme)
     
-    // Listen for system theme changes
     if (window.matchMedia) {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
       mediaQuery.addEventListener('change', (e) => {
@@ -342,14 +348,10 @@ export class UIManager {
     console.log(`🔔 Showing toast: ${title} - ${message}`)
     
     try {
-      // Create toast element
       const toast = this.createToastElement(toastId, title, message, type)
-      
-      // Add to container
       const container = this.getToastContainer()
       container.appendChild(toast)
       
-      // Store toast reference
       this.toasts.set(toastId, {
         element: toast,
         timeout: null,
@@ -358,7 +360,6 @@ export class UIManager {
         message
       })
       
-      // Auto-remove after duration
       if (duration > 0) {
         const timeout = setTimeout(() => {
           this.removeToast(toastId)
@@ -367,12 +368,10 @@ export class UIManager {
         this.toasts.get(toastId).timeout = timeout
       }
       
-      // Limit number of toasts
       this.limitToasts()
       
     } catch (error) {
       console.error('❌ Failed to show toast:', error)
-      // Fallback to console log
       console.log(`Toast: ${title} - ${message}`)
     }
     
@@ -387,7 +386,6 @@ export class UIManager {
     toast.className = `toast ${type} animate-slide-right`
     toast.dataset.toastId = id
     
-    // Icon based on type
     const icons = {
       success: `<svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
@@ -416,7 +414,6 @@ export class UIManager {
       </button>
     `
     
-    // Add close button handler
     const closeBtn = toast.querySelector('.toast-close')
     closeBtn.addEventListener('click', () => {
       this.removeToast(id)
@@ -433,15 +430,12 @@ export class UIManager {
     if (!toast) return
     
     try {
-      // Clear timeout
       if (toast.timeout) {
         clearTimeout(toast.timeout)
       }
       
-      // Animate out
       toast.element.classList.add('animate-slide-out')
       
-      // Remove after animation
       setTimeout(() => {
         if (toast.element.parentNode) {
           toast.element.parentNode.removeChild(toast.element)
@@ -491,7 +485,6 @@ export class UIManager {
       tooltip.textContent = text
       tooltip.dataset.tooltipId = tooltipId
       
-      // Position tooltip
       const rect = element.getBoundingClientRect()
       tooltip.style.position = 'absolute'
       tooltip.style.top = `${rect.top - 40}px`
@@ -530,7 +523,7 @@ export class UIManager {
   }
 
   /**
-   * Update element content or attributes - ENHANCED VERSION
+   * Update element content or attributes
    */
   updateElement(elementId, property, value) {
     try {
@@ -568,7 +561,7 @@ export class UIManager {
   }
 
   /**
-   * Update status indicators - ENHANCED VERSION
+   * Update status indicators
    */
   updateStatus(type, status, text) {
     try {
@@ -576,13 +569,8 @@ export class UIManager {
       const textElement = document.getElementById(`${type}StatusText`)
       
       if (dotElement) {
-        // Remove old status classes
         dotElement.classList.remove('connected', 'error', 'ready', 'disconnected')
-        
-        // Add new status class
         dotElement.classList.add(status)
-        
-        // Add animation for status changes
         dotElement.classList.add('animate-pulse')
         setTimeout(() => {
           dotElement.classList.remove('animate-pulse')
@@ -601,7 +589,7 @@ export class UIManager {
   }
 
   /**
-   * Show loading state on button - ENHANCED VERSION
+   * Show loading state on button
    */
   showButtonLoading(buttonId, loading = true) {
     try {
@@ -632,13 +620,12 @@ export class UIManager {
   }
 
   /**
-   * Update analysis result display - COMPLETELY REWRITTEN
+   * FIXED: Update analysis result display with proper real-time handling
    */
   updateAnalysisResult(result, metadata = {}) {
     console.log('🎨 Updating analysis result:', result?.substring(0, 100) + '...')
     
     const contentElement = document.getElementById('analysisContent')
-    const statusElement = document.getElementById('analysisStatus')
     const lastUpdateElement = document.getElementById('lastUpdate')
     const responseTimeElement = document.getElementById('responseTime')
     
@@ -650,16 +637,15 @@ export class UIManager {
       }
       
       // Set the result text
-      contentElement.innerHTML = '' // Clear existing content
+      contentElement.innerHTML = ''
       contentElement.textContent = result || 'No result available'
       
-      // Add animation class
-      contentElement.classList.remove('animate-fade-in') // Remove first to reset
+      // Add animation for visual feedback
+      contentElement.classList.remove('animate-fade-in')
       setTimeout(() => {
         contentElement.classList.add('animate-fade-in')
       }, 10)
       
-      // Remove animation class after animation completes
       setTimeout(() => {
         contentElement.classList.remove('animate-fade-in')
       }, 500)
@@ -669,14 +655,12 @@ export class UIManager {
       console.error('🎨 analysisContent element not found!')
     }
     
-    if (statusElement) {
-      statusElement.className = 'status-indicator ready'
-      statusElement.textContent = 'Complete'
-    }
-    
+    // Update timestamps
     if (lastUpdateElement) {
       const now = new Date().toLocaleTimeString()
-      lastUpdateElement.textContent = `Last: ${now}`
+      const prefix = metadata.realtime ? 'Live:' : 'Last:'
+      lastUpdateElement.textContent = `${prefix} ${now}`
+      this.lastRealtimeUpdate = Date.now()
     }
     
     if (responseTimeElement && metadata.responseTime) {
@@ -704,7 +688,7 @@ export class UIManager {
   }
 
   /**
-   * Update analysis status - ENHANCED VERSION
+   * FIXED: Update analysis status with real-time awareness
    */
   updateAnalysisStatus(status, text) {
     try {
@@ -712,6 +696,12 @@ export class UIManager {
       if (!statusElement) {
         console.warn('🎨 analysisStatus element not found')
         return
+      }
+      
+      // CRITICAL FIX: Don't change status if real-time is active and we're trying to set "Complete"
+      if (this.isRealtimeActive && (status === 'ready' || text === 'Complete')) {
+        console.log('🎨 Skipping status update to "Complete" - real-time is active')
+        return // Don't update status during real-time
       }
       
       statusElement.className = `status-indicator ${status}`
@@ -724,7 +714,7 @@ export class UIManager {
         statusElement.classList.remove('animate-breathe')
       }
       
-      console.log(`🎨 Analysis status updated: ${status} - ${text}`)
+      console.log(`🎨 Analysis status updated: ${status} - ${text} (realtime: ${this.isRealtimeActive})`)
       
     } catch (error) {
       console.error('❌ Failed to update analysis status:', error)
@@ -732,7 +722,7 @@ export class UIManager {
   }
 
   /**
-   * Update metric display - ENHANCED VERSION
+   * Update metric display
    */
   updateMetric(metricName, value) {
     try {
@@ -758,7 +748,6 @@ export class UIManager {
         }, 1000)
       }
       
-      // Show metrics panel
       const metricsPanel = document.getElementById('analysisMetrics')
       if (metricsPanel) {
         metricsPanel.style.display = 'block'
@@ -775,7 +764,6 @@ export class UIManager {
    * Handle window resize
    */
   handleResize() {
-    // Reposition tooltips and modals if needed
     this.repositionFloatingElements()
   }
 
@@ -784,15 +772,12 @@ export class UIManager {
    */
   handleOutsideClick(event) {
     // Close dropdowns, modals, etc. when clicking outside
-    // Implementation depends on specific UI components
   }
 
   /**
    * Handle escape key
    */
   handleEscapeKey() {
-    // Close any open modals or overlays
-    // Clear any active selections
     console.log('🎨 Escape key pressed')
   }
 
@@ -811,7 +796,6 @@ export class UIManager {
     content.style.display = isHidden ? 'block' : 'none'
     toggle.textContent = isHidden ? '−' : '+'
     
-    // Add animation
     monitor.classList.add('animate-bounce-in')
     setTimeout(() => {
       monitor.classList.remove('animate-bounce-in')
@@ -837,7 +821,6 @@ export class UIManager {
    * Reposition floating elements
    */
   repositionFloatingElements() {
-    // Reposition tooltips
     for (const [element, tooltip] of this.tooltips) {
       try {
         const rect = element.getBoundingClientRect()
@@ -877,7 +860,6 @@ export class UIManager {
       console.error('🎨 Animation error:', error)
     }
     
-    // Process next animation
     setTimeout(() => {
       this.processAnimationQueue()
     }, 50)
@@ -896,6 +878,8 @@ export class UIManager {
   getState() {
     return {
       isInitialized: this.isInitialized,
+      isRealtimeActive: this.isRealtimeActive,
+      lastRealtimeUpdate: this.lastRealtimeUpdate,
       toastCount: this.toasts.size,
       modalCount: this.modals.size,
       tooltipCount: this.tooltips.size,
@@ -908,17 +892,14 @@ export class UIManager {
    * Clear all UI elements
    */
   clearAll() {
-    // Clear all toasts
     for (const [id] of this.toasts) {
       this.removeToast(id)
     }
     
-    // Clear all tooltips
     for (const [element] of this.tooltips) {
       this.hideTooltip(element)
     }
     
-    // Clear animation queue
     this.animationQueue = []
     this.isAnimating = false
   }
@@ -929,13 +910,10 @@ export class UIManager {
   async shutdown() {
     console.log('🎨 Shutting down Enhanced UI Manager...')
     
-    // Clear all UI elements
     this.clearAll()
-    
-    // Remove event listeners
-    // (Most are automatically cleaned up when elements are destroyed)
-    
     this.isInitialized = false
+    this.isRealtimeActive = false
+    
     console.log('✅ Enhanced UI Manager shut down')
   }
 }

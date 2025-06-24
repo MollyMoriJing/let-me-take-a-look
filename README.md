@@ -65,6 +65,12 @@ All functions accessible via keyboard shortcuts for screen reader users:
 - **`F3`** - Read Camera Stats
 - **`F4`** - Emergency Stop (Stop all audio and processing)
 
+## Demo
+
+![alt text](image.png)
+![alt text](image-1.png)
+![alt text](image-2.png)
+
 ## Getting Started
 
 ### 1. Setup Requirements
